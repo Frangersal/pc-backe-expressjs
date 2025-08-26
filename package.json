@@ -1,0 +1,24 @@
+{
+  "name": "pc-backe-expressjs",
+  "version": "1.0.0",
+  "description": "Seguimiento del  Curso de Backend con ExpressJS de Platzi impartido por el profesor Oscar Barajas Tavares.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Frangersal/pc-backe-expressjs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Frangersal/pc-backe-expressjs/issues"
+  },
+  "homepage": "https://github.com/Frangersal/pc-backe-expressjs#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
