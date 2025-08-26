@@ -95,7 +95,53 @@ app.get('/users', (req, res)=>{
     })
 });
 
+app.post('/users', (req, res) => {
+    // Se obtiene el nuevo usuario desde el body
+    const newUser = req.body;
 
+    // Validación del nombre
+    if (!newUser.name || newUser.name.length < 3) {
+        return res.status(400).json({ error: "El nombre debe tener al menos 3 caracteres" });
+    }
+
+    // Validación del email con expresión regular
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newUser.email || !emailRegex.test(newUser.email)) {
+        return res.status(400).json({ error: "El email no es válido" });
+    }
+
+    // Leer usuarios actuales y validar que el ID sea único, además de generar un ID automáticamente
+    fs.readFile(usersFilePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error con conexión de datos.' });
+        }
+        let users = [];
+        try {
+            users = JSON.parse(data);
+        } catch (e) {
+            users = [];
+        }
+
+        // Generar un ID único automáticamente como número usando timestamp y aleatorio
+        const newId = Date.now() * 10000 + Math.floor(Math.random() * 10000);
+
+        // Validar que el email no esté repetido (opcional, pero recomendable)
+        if (users.some(u => u.email === newUser.email)) {
+            return res.status(400).json({ error: 'El email ya está registrado' });
+        }
+
+        // Asignar el ID generado automáticamente como número
+        newUser.id = Number(newId);
+        users.push(newUser);
+
+        fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), err => {
+            if (err) {
+                return res.status(500).json({ error: 'Error al guardar el usuario' });
+            }
+            res.status(201).json(newUser);
+        });
+    });
+});
 
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
