@@ -8,6 +8,14 @@ require('dotenv').config();
 const express = require('express');
 // Importar modulo body-parser
 const bodyParser = require('body-parser');
+
+// Modulos para trabajar con el sistema de archivos y rutas locales
+const fs = require('fs');
+const path = require('path');
+usersFilePath = path.join(__dirname, 'users.json');
+
+
+
 // Crea una instancia de la aplicación express
 const app = express();
 // Se configura body-parser para aceptar JSON y datos de formularios
@@ -73,6 +81,17 @@ app.post('/api/data', (req, res)=>{
     res.status(201).json({
         message:'Datos JSON recibidos',
         data
+    })
+});
+
+app.get('/users', (req, res)=>{
+    fs.readFile(usersFilePath, 'utf-8', (err, data)=>{
+        if(err){
+            return res.status(500).json({error:'Error con conexión de datos.'})
+        }
+
+        const users= JSON.parse(data);
+        res.json(users);
     })
 });
 
