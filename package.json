@@ -4,6 +4,8 @@
   "description": "Seguimiento del  Curso de Backend con ExpressJS de Platzi impartido por el profesor Oscar Barajas Tavares.",
   "main": "index.js",
   "scripts": {
+    "dev": "node --watch app.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +21,7 @@
   },
   "homepage": "https://github.com/Frangersal/pc-backe-expressjs#readme",
   "dependencies": {
+    "dotenv": "^17.2.1",
     "express": "^5.1.0"
-  },
-  "devDependencies": {}
+  }
 }
