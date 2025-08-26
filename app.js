@@ -12,6 +12,8 @@ const bodyParser = require('body-parser');
 // Modulos para trabajar con el sistema de archivos y rutas locales
 const fs = require('fs');
 const path = require('path');
+const { serialize } = require('v8');
+const { ServerResponse } = require('http');
 usersFilePath = path.join(__dirname, 'users.json');
 
 
@@ -84,6 +86,7 @@ app.post('/api/data', (req, res)=>{
     })
 });
 
+// CRUD - R of Read!
 app.get('/users', (req, res)=>{
     fs.readFile(usersFilePath, 'utf-8', (err, data)=>{
         if(err){
@@ -95,6 +98,7 @@ app.get('/users', (req, res)=>{
     })
 });
 
+// CRUD - C of Create!
 app.post('/users', (req, res) => {
     // Se obtiene el nuevo usuario desde el body
     const newUser = req.body;
@@ -130,15 +134,69 @@ app.post('/users', (req, res) => {
             return res.status(400).json({ error: 'El email ya está registrado' });
         }
 
-        // Asignar el ID generado automáticamente como número
-        newUser.id = Number(newId);
-        users.push(newUser);
+        // Asignar el ID generado automáticamente como número y crear el objeto con id primero
+        const userToSave = {
+            id: Number(newId),
+            name: newUser.name,
+            email: newUser.email
+        };
+        users.push(userToSave);
 
         fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), err => {
             if (err) {
                 return res.status(500).json({ error: 'Error al guardar el usuario' });
             }
-            res.status(201).json(newUser);
+            res.status(201).json(userToSave);
+        });
+    });
+});
+
+// CRUD - U of Update!
+app.put('/users/:id', (req, res)=>{
+    const userId = parseInt(req.params.id, 10)
+    const updatedUser = req.body;
+    // Validar que no se está intentando modificar el campo 'id'
+    if ('id' in updatedUser) {
+        return res.status(400).json({ error: 'No se puede modificar el campo id.' });
+    }
+    // Validar formato de datos enviados
+    if (updatedUser.name && updatedUser.name.length < 3) {
+        return res.status(400).json({ error: 'El nombre debe tener al menos 3 caracteres.' });
+    }
+    if (updatedUser.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(updatedUser.email)) {
+            return res.status(400).json({ error: 'El email no es válido.' });
+        }
+    }
+    // Leer el archivo de usuarios
+    fs.readFile(usersFilePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error con conexión de datos.' });
+        }
+        let users = [];
+        try {
+            users = JSON.parse(data);
+        } catch (e) {
+            users = [];
+        }
+        // Verificar que no existan IDs duplicados
+        const idCount = users.filter(u => u.id === userId).length;
+        if (idCount > 1) {
+            return res.status(400).json({ error: 'Existen IDs duplicados en la base de datos.' });
+        }
+        // Verificar que el ID existe
+        const userIndex = users.findIndex(u => u.id === userId);
+        if (userIndex === -1) {
+            return res.status(404).json({ error: 'Usuario no encontrado.' });
+        }
+        // Actualizar solo el primer usuario encontrado
+        users[userIndex] = { ...users[userIndex], ...updatedUser };
+        fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), err => {
+            if (err) {
+                return res.status(500).json({ error: "Error al actualizar el usuario" });
+            }
+            res.json(users[userIndex]);
         });
     });
 });
