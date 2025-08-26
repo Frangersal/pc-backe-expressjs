@@ -11,8 +11,8 @@
     "url": "git+https://github.com/Frangersal/pc-backe-expressjs.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Francisco G. Salinas",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/Frangersal/pc-backe-expressjs/issues"
@@ -20,5 +20,6 @@
   "homepage": "https://github.com/Frangersal/pc-backe-expressjs#readme",
   "dependencies": {
     "express": "^5.1.0"
-  }
+  },
+  "devDependencies": {}
 }
