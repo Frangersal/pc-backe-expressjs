@@ -6,6 +6,10 @@ require('dotenv').config();
 // Importa el módulo express
 // Se importa body-parser para poder manejar datos enviados en el cuerpo de las peticiones (POST, PUT, etc.)
 const express = require('express');
+
+//Middleware
+const LoggerMiddleware = require('./middlewares/logers')
+
 // Importar modulo body-parser
 const bodyParser = require('body-parser');
 
@@ -23,6 +27,7 @@ const app = express();
 // Se configura body-parser para aceptar JSON y datos de formularios
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}))
+app.use(LoggerMiddleware)
 
 // Define el puerto a usar, tomando el valor de la variable de entorno PORT o 3000 por defecto
 const PORT = process.env.PORT || 3000;
@@ -201,6 +206,24 @@ app.put('/users/:id', (req, res)=>{
     });
 });
 
+// CRUD - D of Delete!
+app.delete('/users/:id', (req,res)=>{
+    const userId = parseInt(req.params.id, 10);
+    fs.readFile(usersFilePath, 'utf-8',(err,data)=>{
+        if(err){
+            return res.status(500).json({error:'Error con conexión de datos.'})
+        }
+        let users = JSON.parse(data);
+        //Filtro de usuarios para eliminarlo
+        users = users.filter(user=>user.id!== userId);
+        fs.writeFile(usersFilePath,JSON.stringify(users,null,2), err=>{
+            if (err) {
+                return res.status(500).json({error:'Error al eliminar usuario'})
+            }
+            res.status(204).send();
+        })
+    })
+})
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
 app.listen(PORT, () => {
