@@ -9,6 +9,7 @@ const express = require('express');
 
 //Middleware
 const LoggerMiddleware = require('./middlewares/logers')
+const errorHandler = require('./middlewares/errorHandler')
 
 // Importar modulo body-parser
 const bodyParser = require('body-parser');
@@ -28,6 +29,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(LoggerMiddleware)
+app.use(errorHandler)
 
 // Define el puerto a usar, tomando el valor de la variable de entorno PORT o 3000 por defecto
 const PORT = process.env.PORT || 3000;
@@ -224,6 +226,11 @@ app.delete('/users/:id', (req,res)=>{
         })
     })
 })
+
+//Endpoint que se encargue solamente de los errores
+app.get('/error', (req,res,next)=>{
+    next (new Error('Error Intencional'))
+});
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
 app.listen(PORT, () => {
