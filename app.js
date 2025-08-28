@@ -19,9 +19,9 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient;
 
 //Middleware
-const LoggerMiddleware = require('./middlewares/logers')
-const errorHandler = require('./middlewares/errorHandler')
-const authenticateToken = require('./middlewares/auth')
+const LoggerMiddleware = require('./src/middlewares/logers')
+const errorHandler = require('./src/middlewares/errorHandler')
+const authenticateToken = require('./src/middlewares/auth')
 
 
 // Modulos para trabajar con el sistema de archivos y rutas locales
