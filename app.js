@@ -15,6 +15,7 @@ const prisma = new PrismaClient;
 //Middleware
 const LoggerMiddleware = require('./middlewares/logers')
 const errorHandler = require('./middlewares/errorHandler')
+const authenticateToken = require('./middlewares/auth')
 
 // Importar modulo body-parser
 const bodyParser = require('body-parser');
@@ -245,6 +246,10 @@ app.get('/db-users', async (req, res)=>{
     } catch (error) {
         res.status(500).json({error: 'Error al comunicarse con la BS'})
     }
+});
+
+app.get('/protected-route', authenticateToken, (req, res, )=>{
+    res.send('Esta es una ruta protegida');
 });
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
