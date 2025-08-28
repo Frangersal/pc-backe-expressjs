@@ -7,9 +7,15 @@ require('dotenv').config();
 // Se importa body-parser para poder manejar datos enviados en el cuerpo de las peticiones (POST, PUT, etc.)
 const express = require('express');
 
+// Importar modulo body-parser
+const bodyParser = require('body-parser');
+
+// Crea una instancia de la aplicación express
+const app = express();
+
 // const { PrismaClient } = require('../generated/prisma');
 
-const {PrismaClient} = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient;
 
 //Middleware
@@ -17,24 +23,22 @@ const LoggerMiddleware = require('./middlewares/logers')
 const errorHandler = require('./middlewares/errorHandler')
 const authenticateToken = require('./middlewares/auth')
 
-// Importar modulo body-parser
-const bodyParser = require('body-parser');
 
 // Modulos para trabajar con el sistema de archivos y rutas locales
 const fs = require('fs');
 const path = require('path');
 const { serialize } = require('v8');
 const { ServerResponse } = require('http');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 // const { Prisma } = require('@prisma/client');
 usersFilePath = path.join(__dirname, 'users.json');
 
 
 
-// Crea una instancia de la aplicación express
-const app = express();
 // Se configura body-parser para aceptar JSON y datos de formularios
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:true}))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(LoggerMiddleware)
 app.use(errorHandler)
 
@@ -45,24 +49,24 @@ console.log(PORT)
 // Define la ruta principal y la respuesta que se envía al acceder a '/'
 app.get('/', (req, res) => {
     res.send(
-    `
+        `
     <h1>Curso Express.js</h1>
     <p>Esto es una app node.js con express.js </p>
     <p>Corre en el puerto: ${PORT} </p>
     `
-// Ruta para mostrar información de un usuario según su ID recibido por parámetro en la URL
+        // Ruta para mostrar información de un usuario según su ID recibido por parámetro en la URL
     );
 });
 
-app.get('/users/:id',(req, res)=>{
-// Ruta para realizar búsquedas usando parámetros de consulta (query params)
+app.get('/users/:id', (req, res) => {
+    // Ruta para realizar búsquedas usando parámetros de consulta (query params)
     const userId = req.params.id;
     res.send(`Mostrar información del usuario con ID: ${userId}`)
 });
-app.get('/search', (req,res)=>{
-// Ruta que permite realizar búsquedas utilizando parámetros de consulta (query string) recibidos en la URL
-// Ej. http://localhost:3005/search?termino=expressjs&categoria=nodejs
-const terms = req.query.termino || 'No especificado';
+app.get('/search', (req, res) => {
+    // Ruta que permite realizar búsquedas utilizando parámetros de consulta (query string) recibidos en la URL
+    // Ej. http://localhost:3005/search?termino=expressjs&categoria=nodejs
+    const terms = req.query.termino || 'No especificado';
     const category = req.query.categoria || 'Todas';
     res.send(`
         <h2>Resultados de Busqueda:</h2>
@@ -72,42 +76,42 @@ const terms = req.query.termino || 'No especificado';
 });
 
 //Ruta para pocesar formularios
-app.post('/form',(req, res)=> {
+app.post('/form', (req, res) => {
     //Accederemos a los datos en el BODY de la peticion
     // Si probamos en URL no podremos verlo en el navegador 
     // Usaremos Postman
     const name = req.body.nombre || 'Anónimo'
     const email = req.body.email || 'No proporcionado'
     res.json({
-        message: 'Datos recibidos', 
+        message: 'Datos recibidos',
         data: {
-            name, 
+            name,
             email
         }
     })
 
 });
 // Ruta para recibir datos JSON mediante una petición POST y responder con los datos recibidos o un error si no se envían datos
-app.post('/api/data', (req, res)=>{
+app.post('/api/data', (req, res) => {
     const data = req.body;
-    if(!data || Object.keys(data).length === 0){
-        return res.status(400).json({error: 'No se recibieron datos'})
+    if (!data || Object.keys(data).length === 0) {
+        return res.status(400).json({ error: 'No se recibieron datos' })
     }
 
     res.status(201).json({
-        message:'Datos JSON recibidos',
+        message: 'Datos JSON recibidos',
         data
     })
 });
 
 // CRUD - R of Read!
-app.get('/users', (req, res)=>{
-    fs.readFile(usersFilePath, 'utf-8', (err, data)=>{
-        if(err){
-            return res.status(500).json({error:'Error con conexión de datos.'})
+app.get('/users', (req, res) => {
+    fs.readFile(usersFilePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error con conexión de datos.' })
         }
 
-        const users= JSON.parse(data);
+        const users = JSON.parse(data);
         res.json(users);
     })
 });
@@ -166,7 +170,7 @@ app.post('/users', (req, res) => {
 });
 
 // CRUD - U of Update!
-app.put('/users/:id', (req, res)=>{
+app.put('/users/:id', (req, res) => {
     const userId = parseInt(req.params.id, 10)
     const updatedUser = req.body;
     // Validar que no se está intentando modificar el campo 'id'
@@ -216,18 +220,18 @@ app.put('/users/:id', (req, res)=>{
 });
 
 // CRUD - D of Delete!
-app.delete('/users/:id', (req,res)=>{
+app.delete('/users/:id', (req, res) => {
     const userId = parseInt(req.params.id, 10);
-    fs.readFile(usersFilePath, 'utf-8',(err,data)=>{
-        if(err){
-            return res.status(500).json({error:'Error con conexión de datos.'})
+    fs.readFile(usersFilePath, 'utf-8', (err, data) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error con conexión de datos.' })
         }
         let users = JSON.parse(data);
         //Filtro de usuarios para eliminarlo
-        users = users.filter(user=>user.id!== userId);
-        fs.writeFile(usersFilePath,JSON.stringify(users,null,2), err=>{
+        users = users.filter(user => user.id !== userId);
+        fs.writeFile(usersFilePath, JSON.stringify(users, null, 2), err => {
             if (err) {
-                return res.status(500).json({error:'Error al eliminar usuario'})
+                return res.status(500).json({ error: 'Error al eliminar usuario' })
             }
             res.status(204).send();
         })
@@ -235,21 +239,39 @@ app.delete('/users/:id', (req,res)=>{
 })
 
 //Endpoint que se encargue solamente de los errores
-app.get('/error', (req,res,next)=>{
-    next (new Error('Error Intencional'))
+app.get('/error', (req, res, next) => {
+    next(new Error('Error Intencional'))
 });
 
-app.get('/db-users', async (req, res)=>{
+app.get('/db-users', async (req, res) => {
     try {
         const users = await prisma.user.findMany();
         res.json(users);
     } catch (error) {
-        res.status(500).json({error: 'Error al comunicarse con la BS'})
+        res.status(500).json({ error: 'Error al comunicarse con la BS' })
     }
 });
 
-app.get('/protected-route', authenticateToken, (req, res, )=>{
+app.get('/protected-route', authenticateToken, (req, res,) => {
     res.send('Esta es una ruta protegida');
+});
+
+app.post('/register', async (req, res) => {
+    // Extraer información del cuerpo de la solicitud
+    const { email, password, name } = req.body;
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // Crear el usuario en la base de datos
+    const newUser = await prisma.user.create({
+        data: {
+            email,
+            password: hashedPassword,
+            name,
+            role: 'USER'
+        }
+    });
+    // Enviar respuesta
+    res.status(201).json({ message: 'User registered successfully' });
 });
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
