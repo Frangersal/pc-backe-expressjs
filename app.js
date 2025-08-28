@@ -7,6 +7,11 @@ require('dotenv').config();
 // Se importa body-parser para poder manejar datos enviados en el cuerpo de las peticiones (POST, PUT, etc.)
 const express = require('express');
 
+// const { PrismaClient } = require('../generated/prisma');
+
+const {PrismaClient} = require('@prisma/client');
+const prisma = new PrismaClient;
+
 //Middleware
 const LoggerMiddleware = require('./middlewares/logers')
 const errorHandler = require('./middlewares/errorHandler')
@@ -19,6 +24,7 @@ const fs = require('fs');
 const path = require('path');
 const { serialize } = require('v8');
 const { ServerResponse } = require('http');
+// const { Prisma } = require('@prisma/client');
 usersFilePath = path.join(__dirname, 'users.json');
 
 
@@ -230,6 +236,15 @@ app.delete('/users/:id', (req,res)=>{
 //Endpoint que se encargue solamente de los errores
 app.get('/error', (req,res,next)=>{
     next (new Error('Error Intencional'))
+});
+
+app.get('/db-users', async (req, res)=>{
+    try {
+        const users = await prisma.user.findMany();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({error: 'Error al comunicarse con la BS'})
+    }
 });
 
 // Inicia el servidor y lo pone a escuchar en el puerto definido
